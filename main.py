@@ -119,7 +119,7 @@ class Window:
         )
 
         close_btn_rect = pygame.Rect(self.pos[0] + self.width - 20, self.pos[1] - 20, 40, 40)
-        close_btn = pygame.transform.scale(pygame.image.load(path('assets\\close.png')), close_btn_rect.size)
+        close_btn = pygame.transform.scale(pygame.image.load(path('assets/close.png')), close_btn_rect.size)
         self.screen.blit(close_btn, close_btn_rect)
 
         if self.title is not None:
@@ -140,14 +140,14 @@ class Menu:
 
         sound_button_rect = pygame.Rect(window.pos[0] + (window.width - 70) / 2 - 45, window.pos[1] + 35 + 30, 70, 70)
         sound_button = pygame.transform.scale(
-            pygame.image.load(path('assets\\sound-on.png' if sounds else 'assets\\sound-off.png')),
+            pygame.image.load(path('assets/sound-on.png' if sounds else 'assets/sound-off.png')),
             sound_button_rect.size,
         )
         window.screen.blit(sound_button, sound_button_rect)
 
         exit_button_rect = pygame.Rect(window.pos[0] + (window.width - 70) / 2 + 45, window.pos[1] + 35 + 30, 70, 70)
         exit_button = pygame.transform.scale(
-            pygame.image.load(path('assets\\exit2.png')),
+            pygame.image.load(path('assets/exit2.png')),
             exit_button_rect.size,
         )
         window.screen.blit(exit_button, exit_button_rect)
@@ -358,19 +358,19 @@ class Game:
         x_positions = [(screen_width - count * size - (count - 1) * gap) / 2 + i * (size + gap) for i in range(count)]
 
         home_btn_rect = pygame.Rect(x_positions[0], screen_height - 70, size, size)
-        home_btn = pygame.transform.scale(pygame.image.load(path('assets\\home.png')), home_btn_rect.size)
+        home_btn = pygame.transform.scale(pygame.image.load(path('assets/home.png')), home_btn_rect.size)
         self.screen.blit(home_btn, home_btn_rect)
 
         question_btn_rect = pygame.Rect(x_positions[1], screen_height - 70, size, size)
-        question_btn = pygame.transform.scale(pygame.image.load(path('assets\\question.png')), question_btn_rect.size)
+        question_btn = pygame.transform.scale(pygame.image.load(path('assets/question.png')), question_btn_rect.size)
         self.screen.blit(question_btn, question_btn_rect)
 
         clear_btn_rect = pygame.Rect(x_positions[2], screen_height - 70, size, size)
-        clear_btn = pygame.transform.scale(pygame.image.load(path('assets\\reset.png')), clear_btn_rect.size)
+        clear_btn = pygame.transform.scale(pygame.image.load(path('assets/reset.png')), clear_btn_rect.size)
         self.screen.blit(clear_btn, clear_btn_rect)
 
         bcsp_btn_rect = pygame.Rect(x_positions[3], screen_height - 70, size, size)
-        bcsp_btn = pygame.transform.scale(pygame.image.load(path('assets\\delete.png')), bcsp_btn_rect.size)
+        bcsp_btn = pygame.transform.scale(pygame.image.load(path('assets/delete.png')), bcsp_btn_rect.size)
         self.screen.blit(bcsp_btn, bcsp_btn_rect)
 
         for event in events:
