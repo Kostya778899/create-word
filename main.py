@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
+
 import random
 from dataclasses import dataclass
 from time import monotonic
 import pygame
 import sys
 
-image_path = '/data/data/com.kostyhub.createword/files/app/'
+android = False
 
 @dataclass
 class Mode:
@@ -17,9 +19,9 @@ class Player:
     experience = 0
 
 modes = [
-    Mode('easy', words={'e012', 'e01234', 'e0156'}),
-    Mode('medium', words={'m00000000', 'm000111', 'm010101010101'}),
-    Mode('hard', words={'h0ghgh12', 'h7dfgsdgfs', 'h345hfhdfh'}),
+    Mode('easy', words={'дом', 'рука', 'нос', 'глаз', 'лес', 'стол', 'душа', 'путь', 'шаг', 'щека', 'цвет', 'мед', 'свет', 'муха', 'звук', 'ночь', 'сон', 'мышь', 'тень', 'мяч', 'куст', 'пята', 'соль', 'гора', 'шум', 'коса', 'мука', 'гриб', 'рог', 'град', 'мак', 'вера', 'сено', 'груз', 'пень', 'змея', 'пол', 'ята', 'пиво', 'игла', 'рост', 'дно', 'дети', 'марш', 'юбка', 'лист', 'река', 'дочь', 'узка', 'пес', 'стук', 'тюль', 'мост', 'рот', 'лук', 'шлем', 'гусь', 'очки', 'друг', 'щит', 'бог', 'пот', 'крем', 'сбор', 'шар', 'соус', 'шарф', 'кеды', 'пыль', 'клоп', 'дот', 'рой', 'соя', 'тмин', 'море', 'удар', 'луг', 'брус', 'ваза', 'двор', 'клык', 'руль', 'сыр', 'сеть', 'клин', 'тон'}),
+    Mode('medium', words={'ветер', 'грудь', 'дождь', 'радость', 'счастье', 'кровь', 'слеза', 'борода', 'густо', 'жертва', 'гроза', 'берег', 'крыса', 'хвост', 'старик', 'пепел', 'кулак', 'морда', 'мразь', 'судьба', 'гриль', 'холод', 'глава', 'кровля', 'парус', 'глянец', 'червь', 'камень', 'лопата', 'крыша', 'ольха', 'лукавец', 'грива', 'слуга', 'миндаль', 'горец', 'дрожь', 'ширма', 'супруг', 'любовь', 'мотыль', 'ученье', 'вимпель', 'шампунь', 'свист', 'уголь', 'цветок', 'ножка', 'кексы', 'тайком', 'шарик', 'стрела', 'плато', 'кобель', 'бабка', 'деточка', 'кольцо', 'замок', 'стежок', 'кинжал', 'сарай', 'корень', 'тельце', 'палка', 'пушка', 'тычок', 'весло', 'крыло', 'рубашка'}),
+    Mode('hard', words={'терновник', 'кустарник', 'песчанник', 'муравьишка', 'младенец', 'сундучок', 'бейсболка', 'ржавчина', 'макароны'}),
 ]
 
 screen: pygame.Surface
@@ -67,6 +69,11 @@ def exit_app():
     pygame.quit()
     sys.exit()
 
+def path(local: str) -> str:
+    android_path = '/data/data/com.kostyhub.createword/files/app/'
+
+    return android_path + local if android else local
+
 def set_scene(name):
     global scene
 
@@ -112,7 +119,7 @@ class Window:
         )
 
         close_btn_rect = pygame.Rect(self.pos[0] + self.width - 20, self.pos[1] - 20, 40, 40)
-        close_btn = pygame.transform.scale(pygame.image.load(image_path + 'assets\\close.png'), close_btn_rect.size)
+        close_btn = pygame.transform.scale(pygame.image.load(path('assets\\close.png')), close_btn_rect.size)
         self.screen.blit(close_btn, close_btn_rect)
 
         if self.title is not None:
@@ -133,14 +140,14 @@ class Menu:
 
         sound_button_rect = pygame.Rect(window.pos[0] + (window.width - 70) / 2 - 45, window.pos[1] + 35 + 30, 70, 70)
         sound_button = pygame.transform.scale(
-            pygame.image.load(image_path + 'assets\\sound-on.png' if sounds else image_path + 'assets\\sound-off.png'),
+            pygame.image.load(path('assets\\sound-on.png' if sounds else 'assets\\sound-off.png')),
             sound_button_rect.size,
         )
         window.screen.blit(sound_button, sound_button_rect)
 
         exit_button_rect = pygame.Rect(window.pos[0] + (window.width - 70) / 2 + 45, window.pos[1] + 35 + 30, 70, 70)
         exit_button = pygame.transform.scale(
-            pygame.image.load(image_path + 'assets\\exit2.png'),
+            pygame.image.load(path('assets\\exit2.png')),
             exit_button_rect.size,
         )
         window.screen.blit(exit_button, exit_button_rect)
@@ -351,19 +358,19 @@ class Game:
         x_positions = [(screen_width - count * size - (count - 1) * gap) / 2 + i * (size + gap) for i in range(count)]
 
         home_btn_rect = pygame.Rect(x_positions[0], screen_height - 70, size, size)
-        home_btn = pygame.transform.scale(pygame.image.load(image_path + 'assets\\home.png'), home_btn_rect.size)
+        home_btn = pygame.transform.scale(pygame.image.load(path('assets\\home.png')), home_btn_rect.size)
         self.screen.blit(home_btn, home_btn_rect)
 
         question_btn_rect = pygame.Rect(x_positions[1], screen_height - 70, size, size)
-        question_btn = pygame.transform.scale(pygame.image.load(image_path + 'assets\\question.png'), question_btn_rect.size)
+        question_btn = pygame.transform.scale(pygame.image.load(path('assets\\question.png')), question_btn_rect.size)
         self.screen.blit(question_btn, question_btn_rect)
 
         clear_btn_rect = pygame.Rect(x_positions[2], screen_height - 70, size, size)
-        clear_btn = pygame.transform.scale(pygame.image.load(image_path + 'assets\\reset.png'), clear_btn_rect.size)
+        clear_btn = pygame.transform.scale(pygame.image.load(path('assets\\reset.png')), clear_btn_rect.size)
         self.screen.blit(clear_btn, clear_btn_rect)
 
         bcsp_btn_rect = pygame.Rect(x_positions[3], screen_height - 70, size, size)
-        bcsp_btn = pygame.transform.scale(pygame.image.load(image_path + 'assets\\delete.png'), bcsp_btn_rect.size)
+        bcsp_btn = pygame.transform.scale(pygame.image.load(path('assets\\delete.png')), bcsp_btn_rect.size)
         self.screen.blit(bcsp_btn, bcsp_btn_rect)
 
         for event in events:
