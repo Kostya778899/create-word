@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
-
+import pickle
 import random
+import typing
 from dataclasses import dataclass
 from time import monotonic
 import pygame
 import sys
+from typing import Any
+
+MONEY = 'money'
+EXPERIENCE = 'experience'
 
 android = False
 
@@ -15,8 +20,9 @@ class Mode:
 
 @dataclass
 class Player:
-    money = 0
-    experience = 0
+    money: int
+    experience: int
+player: Player
 
 modes = [
     Mode('easy', words={'дом', 'рука', 'нос', 'глаз', 'лес', 'стол', 'душа', 'путь', 'шаг', 'щека', 'цвет', 'мед', 'свет', 'муха', 'звук', 'ночь', 'сон', 'мышь', 'тень', 'мяч', 'куст', 'пята', 'соль', 'гора', 'шум', 'коса', 'мука', 'гриб', 'рог', 'град', 'мак', 'вера', 'сено', 'груз', 'пень', 'змея', 'пол', 'ята', 'пиво', 'игла', 'рост', 'дно', 'дети', 'марш', 'юбка', 'лист', 'река', 'дочь', 'узка', 'пес', 'стук', 'тюль', 'мост', 'рот', 'лук', 'шлем', 'гусь', 'очки', 'друг', 'щит', 'бог', 'пот', 'крем', 'сбор', 'шар', 'соус', 'шарф', 'кеды', 'пыль', 'клоп', 'дот', 'рой', 'соя', 'тмин', 'море', 'удар', 'луг', 'брус', 'ваза', 'двор', 'клык', 'руль', 'сыр', 'сеть', 'клин', 'тон'}),
@@ -24,12 +30,69 @@ modes = [
     Mode('hard', words={'терновник', 'кустарник', 'песчанник', 'муравьишка', 'младенец', 'сундучок', 'бейсболка', 'ржавчина', 'макароны'}),
 ]
 
+# region database
+
+import urllib3
+import json
+import base64
+
+http = urllib3.PoolManager()
+
+token = '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'
+filename = 'players'
+repo = 'Kostya778899/create-word-database'
+branch = 'main'
+# filename = 'main.py'
+# repo = 'Kostya778899/create-word'
+# branch = 'master'
+url = f'https://api.github.com/repos/{repo}/contents/{filename}'
+
+def try_get_data() -> str or None:
+    request = http.request('GET', f'{url}?ref={branch}', headers={'Authorization': f'token {token}'})
+    if request.status == 404: return None
+    data = base64.b64decode(json.loads(request.data)['content'])
+    return data
+
+def try_push_data() -> bool:
+    request = http.request('PUT', f'{url}?ref={branch}', headers={'Authorization': f'token {token}'})
+
+print(try_get_data())
+
+# def push(filename, repo, branch, token):
+#     url="https://api.github.com/repos/"+repo+"/contents/"+filename
+#
+#     base64content=base64.b64encode(open(filename,"rb").read())
+#
+#     data = requests.get(url+'?ref='+branch, headers = {"Authorization": "token "+token}).json()
+#     sha = data['sha']
+#
+#     if base64content.decode('utf-8')+"\n" != data['content']:
+#         message = json.dumps({"message":"update",
+#                             "branch": branch,
+#                             "content": base64content.decode("utf-8") ,
+#                             "sha": sha
+#                             })
+#
+#         resp=requests.put(url, data = message, headers = {"Content-Type": "application/json", "Authorization": "token "+token})
+#
+#         print(resp)
+#     else:
+#         print("nothing to update")
+#
+# token = 'lskdlfszezeirzoherkzjehrkzjrzerzer'
+# filename = f'player{0}.txt'
+# repo = 'Kostya778899/create-word-database'
+# branch = 'master'
+#
+# push(filename, repo, branch, token)
+# endregion
+
 screen: pygame.Surface
 screen_scale = 700
 screen_width = screen_scale / 2.16
 screen_height = screen_scale
 
-scenes = {'menu': None, 'game': None, 'leaderboard': None}
+scenes = {'menu': Any, 'game': Any, 'leaderboard': Any}
 scene = None
 
 # events = []
@@ -74,6 +137,23 @@ def path(local: str) -> str:
 
     return android_path + local if android else local
 
+def save(key: str, value: str) -> str:
+    try:
+        with open(path(f'save/{key}.txt'), 'wb') as file:
+            pickle.dump(value, file)
+            return value
+    except IOError:
+        print(f'error {key} = {value} not saved')
+        return value
+
+def load(key: str, default_value: str) -> str:
+    try:
+        with open(path(f'save/{key}.txt'), 'rb') as file:
+            value = pickle.load(file)
+            return value
+    except (IOError, pickle.UnpicklingError):
+        return default_value
+
 def set_scene(name):
     global scene
 
@@ -95,6 +175,37 @@ def btn(screen: pygame.Surface, text: str, center: tuple[float, float], on_click
             if event.type == pygame.MOUSEBUTTONDOWN and rect.collidepoint(event.pos):
                 on_click()
     return rect
+
+def player_stats(screen: pygame.Surface, player: Player):
+    level_by_xp_price = 10
+
+    experience = st.h3_ft.render(f'{player.experience}XP', True, st.h_col)
+    screen.blit(experience, experience.get_rect(topleft=(15, 15)))
+
+    level = st.h3_ft.render(f'{player.experience // level_by_xp_price + 1} level', True, st.h_col)
+    level_rect = level.get_rect(midtop=(screen_width / 2, 15))
+
+    line_bg_rect = level_rect.copy()
+    line_bg_rect.w += 30
+    line_bg_rect.h += 4
+    line_bg_rect.x -= 15
+    line_bg_rect.y -= 2 + 1
+    pygame.draw.rect(screen, '#FAA300', line_bg_rect, 0, 7)
+
+    line_rect = line_bg_rect.copy()
+    line_rect.w = (player.experience % level_by_xp_price + 1) / level_by_xp_price * line_bg_rect.w
+    line_rect.w -= 2
+    line_rect.h -= 2
+    line_rect.x += 1
+    line_rect.y += 1
+    pygame.draw.rect(screen, '#F5DD61', line_rect, 0, 7)
+
+    pygame.draw.rect(screen, '#F4538A', line_bg_rect, 1, 7)
+
+    screen.blit(level, level_rect)
+
+    money = st.h3_ft.render(f'{player.money}$', True, st.h_col)
+    screen.blit(money, money.get_rect(topright=(screen_width - 15, 15)))
 
 class Window:
     def __init__(self, screen: pygame.Surface, title: str or None = None, content=None, width=250, height=155,
@@ -220,6 +331,14 @@ class Menu:
             self.set_complexity_window.render()
 
 class Game:
+    def complete_level(self):
+        self.level_completed = True
+        self.win_window.show = True
+        player.money += self.on_complete_bonus[MONEY]
+        save(MONEY, str(player.money))
+        player.experience += self.on_complete_bonus[EXPERIENCE]
+        save(EXPERIENCE, str(player.experience))
+
     # region word
     level_completed = False
 
@@ -230,18 +349,12 @@ class Game:
     clues_letters_indexes = [i for i in range(len(word))]
     active_clues_count = 0
 
-    def complete_level(self):
-        self.level_completed = True
-        self.win_window.show = True
-
     def try_add_up_letter(self, letter_index: int) -> bool:
         if self.level_completed or letter_index in self.up_letters_indexes: return False
         self.up_letters_indexes.append(letter_index)
-
         if len(self.up_letters_indexes) == len(self.word):
             word = ''.join([self.word[e] for e in self.up_letters_indexes])
             if word == self.word: self.complete_level()
-
         return True
     def try_remove_up_letter(self, letter_index: int) -> bool:
         if self.level_completed or len(self.up_letters_indexes) <= letter_index: return False
@@ -268,24 +381,23 @@ class Game:
         word_rect = word.get_rect(center=(window.pos[0] + window.width / 2, window.pos[1] + 35 + 50))
         self.screen.blit(word, word_rect)
 
-        can_by_letter = len(self.clues_letters_indexes) > self.active_clues_count
+        letter_price = 2
+        can_by_letter = player.money >= letter_price and len(self.clues_letters_indexes) > self.active_clues_count
 
         def try_by_letter():
-            if can_by_letter: self.active_clues_count += 1
+            if can_by_letter:
+                player.money -= letter_price
+                save(MONEY, str(player.money))
 
-        btn(window.screen, 'Купить букву (1$)', center=(window.pos[0] + window.width / 2, window.pos[1] + 35 + 100),
+                self.active_clues_count += 1
+
+        btn(window.screen, f'Купить букву ({letter_price}$)',
+            center=(window.pos[0] + window.width / 2, window.pos[1] + 35 + 100),
             on_click=try_by_letter, active=can_by_letter)
 
-        # by_letter = st.h3_ft.render('Купить букву (1$)', True, st.h_act_col if can_by_letter else st.h_de_act_col)
-        # by_letter_rect = by_letter.get_rect(center=(window.pos[0] + window.width / 2, window.pos[1] + 35 + 100))
-        # self.screen.blit(by_letter, by_letter_rect)
-        # if can_by_letter:
-        #     for event in events:
-        #         if event.type == pygame.MOUSEBUTTONDOWN and by_letter_rect.collidepoint(event.pos):
-        #             self.active_clues_count += 1
-
     def win_window_content(self, window: Window):
-        text = st.h3_ft.render('+2$, +10XP', True, st.h_col)
+        text = st.h3_ft.render(f'+{self.on_complete_bonus[MONEY]}$,'
+                               f'+{self.on_complete_bonus[EXPERIENCE]}XP', True, st.h_col)
         text_rect = text.get_rect(center=(window.pos[0] + window.width / 2, 305))
         self.screen.blit(text, text_rect)
 
@@ -311,6 +423,11 @@ class Game:
         self.clues_letters_indexes = [i for i in range(len(self.word))]
         random.shuffle(self.clues_letters_indexes)
         self.active_clues_count = 0
+
+        self.on_complete_bonus = {
+            MONEY: [3, 7, 20][selected_mode_index],
+            EXPERIENCE: [1, 3, 10][selected_mode_index],
+        }
 
     def render(self):
         screen.fill(st.bg_col)
@@ -405,10 +522,16 @@ def main():
     global st
     global events
     global scenes
+    global player
 
     pygame.init()
     screen = pygame.display.set_mode((screen_scale / 2.16, screen_scale))
     st = Styles()
+
+    player = Player(
+        money=int(load(MONEY, str(0))),
+        experience=int(load(EXPERIENCE, str(0))),
+    )
 
     scenes['menu'] = Menu(screen)
     scenes['game'] = Game(screen)
@@ -419,6 +542,7 @@ def main():
         events = pygame.event.get()
 
         scene.render()
+        player_stats(screen, player)
 
         for event in events:
             if event.type == pygame.QUIT: exit_app()
