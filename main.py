@@ -7,6 +7,7 @@ import threading
 import string
 
 import os
+import json
 
 import pygame
 from dataclasses import dataclass
@@ -43,27 +44,28 @@ player: Player
 
 player_name_max_lenth = 8
 
-modes = [
-    Mode('easy',
-         words={'дом', 'рука', 'нос', 'глаз', 'лес', 'стол', 'душа', 'путь', 'шаг', 'щека', 'цвет', 'мед', 'свет',
-                'муха', 'звук', 'ночь', 'сон', 'мышь', 'тень', 'мяч', 'куст', 'пята', 'соль', 'гора', 'шум', 'коса',
-                'мука', 'гриб', 'рог', 'град', 'мак', 'вера', 'сено', 'груз', 'пень', 'змея', 'пол', 'ята', 'пиво',
-                'игла', 'рост', 'дно', 'дети', 'марш', 'юбка', 'лист', 'река', 'дочь', 'узка', 'пес', 'стук', 'тюль',
-                'мост', 'рот', 'лук', 'шлем', 'гусь', 'очки', 'друг', 'щит', 'бог', 'пот', 'крем', 'сбор', 'шар',
-                'соус', 'шарф', 'кеды', 'пыль', 'клоп', 'дот', 'рой', 'соя', 'тмин', 'море', 'удар', 'луг', 'брус',
-                'ваза', 'двор', 'клык', 'руль', 'сыр', 'сеть', 'клин', 'тон'}),
-    Mode('medium',
-         words={'ветер', 'грудь', 'дождь', 'радость', 'счастье', 'кровь', 'слеза', 'борода', 'густо', 'жертва', 'гроза',
-                'берег', 'крыса', 'хвост', 'старик', 'пепел', 'кулак', 'морда', 'мразь', 'судьба', 'гриль', 'холод',
-                'глава', 'кровля', 'парус', 'глянец', 'червь', 'камень', 'лопата', 'крыша', 'ольха', 'лукавец', 'грива',
-                'слуга', 'миндаль', 'горец', 'дрожь', 'ширма', 'супруг', 'любовь', 'мотыль', 'ученье', 'вимпель',
-                'шампунь', 'свист', 'уголь', 'цветок', 'ножка', 'кексы', 'тайком', 'шарик', 'стрела', 'плато', 'кобель',
-                'бабка', 'деточка', 'кольцо', 'замок', 'стежок', 'кинжал', 'сарай', 'корень', 'тельце', 'палка',
-                'пушка', 'тычок', 'весло', 'крыло', 'рубашка'}),
-    Mode('hard',
-         words={'терновник', 'кустарник', 'песчанник', 'муравьишка', 'младенец', 'сундучок', 'бейсболка', 'ржавчина',
-                'макароны'}),
-]
+# modes = [
+#     Mode('easy',
+#          words={'дом', 'рука', 'нос', 'глаз', 'лес', 'стол', 'душа', 'путь', 'шаг', 'щека', 'цвет', 'мед', 'свет',
+#                 'муха', 'звук', 'ночь', 'сон', 'мышь', 'тень', 'мяч', 'куст', 'пята', 'соль', 'гора', 'шум', 'коса',
+#                 'мука', 'гриб', 'рог', 'град', 'мак', 'вера', 'сено', 'груз', 'пень', 'змея', 'пол', 'ята', 'пиво',
+#                 'игла', 'рост', 'дно', 'дети', 'марш', 'юбка', 'лист', 'река', 'дочь', 'узка', 'пес', 'стук', 'тюль',
+#                 'мост', 'рот', 'лук', 'шлем', 'гусь', 'очки', 'друг', 'щит', 'бог', 'пот', 'крем', 'сбор', 'шар',
+#                 'соус', 'шарф', 'кеды', 'пыль', 'клоп', 'дот', 'рой', 'соя', 'тмин', 'море', 'удар', 'луг', 'брус',
+#                 'ваза', 'двор', 'клык', 'руль', 'сыр', 'сеть', 'клин', 'тон'}),
+#     Mode('medium',
+#          words={'ветер', 'грудь', 'дождь', 'радость', 'счастье', 'кровь', 'слеза', 'борода', 'густо', 'жертва', 'гроза',
+#                 'берег', 'крыса', 'хвост', 'старик', 'пепел', 'кулак', 'морда', 'мразь', 'судьба', 'гриль', 'холод',
+#                 'глава', 'кровля', 'парус', 'глянец', 'червь', 'камень', 'лопата', 'крыша', 'ольха', 'лукавец', 'грива',
+#                 'слуга', 'миндаль', 'горец', 'дрожь', 'ширма', 'супруг', 'любовь', 'мотыль', 'ученье', 'вимпель',
+#                 'шампунь', 'свист', 'уголь', 'цветок', 'ножка', 'кексы', 'тайком', 'шарик', 'стрела', 'плато', 'кобель',
+#                 'бабка', 'деточка', 'кольцо', 'замок', 'стежок', 'кинжал', 'сарай', 'корень', 'тельце', 'палка',
+#                 'пушка', 'тычок', 'весло', 'крыло', 'рубашка'}),
+#     Mode('hard',
+#          words={'терновник', 'кустарник', 'песчанник', 'муравьишка', 'младенец', 'сундучок', 'бейсболка', 'ржавчина',
+#                 'макароны'}),
+# ]
+modes: list[Mode]
 
 screen: pygame.Surface
 screen_scale = 700
@@ -106,6 +108,15 @@ st: Styles
 
 sounds = True
 selected_mode_index = 0
+
+
+class Sounds:
+    def __init__(self):
+        self.music = pygame.mixer.Sound(path('assets/music.wav'))
+        self.select = pygame.mixer.Sound(path('assets/select.wav'))
+        self.win = pygame.mixer.Sound(path('assets/win.wav'))
+
+sn: Sounds
 
 
 def exit_app():
@@ -210,6 +221,14 @@ database: Database
 
 
 # endregion
+
+
+local_data_path = 'data.json'
+def get_local_data(data_path: str) -> list[Mode]:
+    with open(path(data_path), encoding='utf-8') as file:
+        data = json.loads(file.read()[1:])
+        return [Mode(name=e, words=set([e for e in data['modes'][e]])) for e in data['modes']]
+
 
 def set_scene(name):
     global scene
@@ -358,7 +377,10 @@ class Menu:
 
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if sound_button_rect.collidepoint(event.pos): sounds = not sounds
+                if sound_button_rect.collidepoint(event.pos):
+                    sounds = not sounds
+                    if sounds: sn.music.play()
+                    else: sn.music.stop()
                 if exit_button_rect.collidepoint(event.pos): window.show = False
 
     @staticmethod
@@ -511,6 +533,7 @@ class Menu:
 
 class Game:
     def complete_level(self):
+        if sounds: sn.win.play()
         self.level_completed = True
         self.win_window.show = True
         player.money += self.on_complete_bonus[MONEY]
@@ -531,6 +554,7 @@ class Game:
 
     def try_add_up_letter(self, letter_index: int) -> bool:
         if self.level_completed or letter_index in self.up_letters_indexes: return False
+        if sounds: sn.select.play()
         self.up_letters_indexes.append(letter_index)
         if len(self.up_letters_indexes) == len(self.word):
             word = ''.join([self.word[e] for e in self.up_letters_indexes])
@@ -539,6 +563,7 @@ class Game:
 
     def try_remove_up_letter(self, letter_index: int) -> bool:
         if self.level_completed or len(self.up_letters_indexes) <= letter_index: return False
+        if sounds: sn.select.play()
         self.up_letters_indexes.pop(letter_index)
         return True
 
@@ -781,7 +806,11 @@ pygame.display.set_caption("My Board")
 exit = False
 
 st = Styles()
+sn = Sounds()
 database = Database(database_url)
+modes = get_local_data(local_data_path)
+
+sn.music.play(-1)
 
 player_id = load(USERID, '')
 first_load = player_id == ''
